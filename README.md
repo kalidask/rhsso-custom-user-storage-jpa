@@ -10,11 +10,10 @@ Default list all users won't work in the keycloak admin console, when using user
 
 update below method , which will work as expected to list all users.
 
-@Override
-    public List<UserModel> searchForUser(Map<String, String> params, RealmModel realm,
+     @Override
+     public List<UserModel> searchForUser(Map<String, String> params, RealmModel realm,
             int firstResult, int maxResults) {
-      
-
+     
         Query query = em.createNativeQuery(UserStoreQueries.GET_ALL_USERS);
 
        
@@ -28,7 +27,5 @@ update below method , which will work as expected to list all users.
         List<UserModel> users = new LinkedList<>();
         for (Object[] entity : results)
             users.add(new UserAdapter(kcSession, realm, model, prepareUserEntity(entity)));
-
-  return users;
-      
-    }
+            return users;
+      }
