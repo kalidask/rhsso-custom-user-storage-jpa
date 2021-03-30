@@ -21,6 +21,7 @@ import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.StorageId;
+import org.keycloak.storage.user.UserQueryProvider;
 
 /**
  * @author <a href="mailto:bbalasub@redhat.com">Bala B</a>
@@ -155,19 +156,26 @@ public class CustomUserStorageProvider implements ILocalCustomUserStorageProvide
 
 	@Override
 	public int getUsersCount(RealmModel realm) {
+		    logger.info("Retrieving users count"); // this method is called on startup
+
 		Object count = em.createNativeQuery(UserStoreQueries.GET_USER_COUNT).getSingleResult();
 		return ((Number) count).intValue();
 	}
 
 	@Override
-	public List<UserModel> getUsers(RealmModel realm) {
+	public List<UserModel> getUsers(RealmModel realm) {		
+    logger.info("getUsers(realm)");    
+
 		return getUsers(realm, -1, -1);
 	}
 
 	@Override
 	public List<UserModel> getUsers(RealmModel realm, int firstResult, int maxResults) {
+    logger.info("getUsers(realm, first, max)");    
 
 		Query query = em.createNativeQuery(UserStoreQueries.GET_ALL_USERS);
+         logger.info("my query for all users:----"+query);
+
 		if (firstResult != -1) {
 			query.setFirstResult(firstResult);
 		}
@@ -188,7 +196,7 @@ public class CustomUserStorageProvider implements ILocalCustomUserStorageProvide
 
 	@Override
 	public List<UserModel> searchForUser(String userName, RealmModel realm, int firstResult,
-			int maxResults) {
+			int maxResults) {		
 		logger.info("seach user by user name: " + userName);
 
 		Query query = em.createNativeQuery(UserStoreQueries.SEARCH_USER_BY_NAME);
@@ -215,7 +223,24 @@ public class CustomUserStorageProvider implements ILocalCustomUserStorageProvide
 	@Override
 	public List<UserModel> searchForUser(Map<String, String> params, RealmModel realm,
 			int firstResult, int maxResults) {
-		return Collections.emptyList();
+      
+
+		Query query = em.createNativeQuery(UserStoreQueries.GET_ALL_USERS);
+
+       
+		if (firstResult != -1) {
+			query.setFirstResult(firstResult);
+		}
+		if (maxResults != -1) {
+			query.setMaxResults(maxResults);
+		}
+		List<Object[]> results = query.getResultList();
+		List<UserModel> users = new LinkedList<>();
+		for (Object[] entity : results)
+			users.add(new UserAdapter(kcSession, realm, model, prepareUserEntity(entity)));
+
+  return users;
+      
 	}
 
 	@Override
